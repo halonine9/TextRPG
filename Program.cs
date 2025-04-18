@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection.Emit;
+using System.Timers;
 using System.Xml.Linq;
 using static TextRPG.Program;
 
@@ -103,7 +104,7 @@ namespace TextRPG
         public int Hp = 100;
         public int Gold = 10000;
         public int itemAtk = 0;
-        public int itemDef = 0;
+        public int itemDef = 0;     
 
 
         private Game game;
@@ -125,7 +126,7 @@ namespace TextRPG
             Console.WriteLine($"체  력 : {Hp}");
             Console.WriteLine($" Gold  : {Gold}\n");
             Console.WriteLine("0. 나가기\n");
-            Console.WriteLine("원하시는 행동을입력해주세요.");
+            Console.WriteLine("원하시는 행동을입력해주세요.");        
             Out();
 
         }
@@ -185,9 +186,7 @@ namespace TextRPG
             }
         }
 
-        private List<Item> inventory = new List<Item>();//보유한 아이템
-        public List<Item> Inven => inventory;//다른 클래스에서 사용 가능하도록
-
+        private List<Item> inventory = new List<Item>();//보유한 아이템     
         private List<Item> equipped = new List<Item>();//장착한 아이템
 
         public void AddItem(Item item)//아이템 추가
@@ -202,15 +201,39 @@ namespace TextRPG
         }
         public void Equipped(Item item)//장착 추가
         {
-            bool check = equipped.Any(i => i.Name == item.Name);
-            if (check == false)
+            //이미 장착중인 아이템인지 확인
+            bool cehck = equipped.Any(i => i.Name == item.Name);
+            if (cehck == true)
+            {
+                equipped.Remove(item);
+            }
+            else
+            {
+                //Type이 같은 아이템이 있는지 확인
+                Item sameitem = equipped.FirstOrDefault(i => i.ItemType == item.ItemType);
+                if (sameitem != null)
+                {
+                    equipped.Remove(sameitem);
+                    equipped.Add(item);
+                }
+                else
+                    equipped.Add(item);
+            }
+            Itemstatus(out itemAtk, out itemDef);
+
+            //중복 장착 코드
+            /*bool cehck = equipped.Any(i => i.Name == item.Name);
+            if (cehck == false)
             {
                 equipped.Add(item);
             }
             else
                  equipped.Remove(item);
-            Itemstatus(out itemAtk, out itemDef);
+            Itemstatus(out itemAtk, out itemDef);*/
         }
+
+
+
         public void Itemstatus(out int totalAtk, out int totalDef)//장비 능력치
         {
             totalAtk = 0;
