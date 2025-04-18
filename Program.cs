@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection.Emit;
 using System.Xml.Linq;
@@ -90,7 +91,10 @@ namespace TextRPG
         public int Atk = 10;
         public int Def = 5;
         public int Hp = 100;
-        public int Gold = 1500;
+        public int Gold = 150000;
+        public int itemAtk = 0;
+        public int itemDef = 0;
+
 
         private Game game;
 
@@ -106,8 +110,8 @@ namespace TextRPG
             Console.WriteLine("==== 플레이어 정보 ====\n");
             Console.WriteLine($"Lv. {Level:D2}");
             Console.WriteLine($"{Name} ({Job})");
-            Console.WriteLine($"공격력 : {Atk} (+ )");
-            Console.WriteLine($"방어력 : {Def} (+ )");
+            Console.WriteLine($"공격력 : {Atk+ itemAtk} (+{itemAtk})");
+            Console.WriteLine($"방어력 : {Def+ itemDef} (+{itemDef})");
             Console.WriteLine($"체 력 : {Hp}");
             Console.WriteLine($"Gold : {Gold}\n");
             Console.WriteLine("0. 나가기\n");
@@ -172,7 +176,7 @@ namespace TextRPG
         }
 
         private List<Item> inventory = new List<Item>();//보유한 아이템
-        public List<Item> equipped = new List<Item>();//장착한 아이템
+        private List<Item> equipped = new List<Item>();//장착한 아이템
 
         public void AddItem(Item item)//아이템 추가
         {
@@ -187,7 +191,17 @@ namespace TextRPG
             }
             else
                  equipped.Remove(item);
-
+            Itemstatus(out itemAtk, out itemDef);
+        }
+        public void Itemstatus(out int totalAtk, out int totalDef)
+        {
+            totalAtk = 0;
+            totalDef = 0;
+            foreach (Item item in equipped)
+            {
+                totalAtk += item.Atk;
+                totalDef += item.Def;
+            }
         }
         public bool HaveItem(Item item)//보유 여부 확인용
         {
@@ -233,13 +247,13 @@ namespace TextRPG
         private Game game;
         private List<Item> items = new List<Item> //아이템 목록
         {
-            new Item("수련자 갑옷    ㅣ방어력 +5 ㅣ수련에 도움을 주는 갑옷입니다.                   ㅣ",0, 5, 1000),
-            new Item("무쇠갑옷       ㅣ방어력 +9 ㅣ무쇠로 만들어져 튼튼한 갑옷입니다.               ㅣ",0, 9, 2000),
-            new Item("스파르타의 갑옷ㅣ방어력 +15ㅣ스파르타의 전사들이 사용했다는 전설의 갑옷입니다.ㅣ",0, 15, 3500),
-            new Item("낡은 검        ㅣ공격력 +2 ㅣ쉽게 볼 수 있는 낡은 검 입니다.                  ㅣ",2, 0, 600),
-            new Item("청동 도끼      ㅣ공격력 +5 ㅣ어디선가 사용됐던거 같은 도끼입니다.             ㅣ",5, 0, 1500),
-            new Item("스파르타의 창  ㅣ공격력 +7 ㅣ스파르타의 전사들이 사용했다는 전설의 창입니다.  ㅣ",7, 0, 3000),
-            new Item("클래스의 망령  ㅣ정신력 -9 ㅣ클래스를 얕보다 멘탈이 깨진 영혼이다.            ㅣ",0, 0, 0),
+            new Item("수련자 갑옷    ㅣ방어력 +5 ㅣ수련에 도움을 주는 갑옷입니다.                   ㅣ",0, 5, 1000, Type.Armor),
+            new Item("무쇠갑옷       ㅣ방어력 +9 ㅣ무쇠로 만들어져 튼튼한 갑옷입니다.               ㅣ",0, 9, 2000, Type.Armor),
+            new Item("스파르타의 갑옷ㅣ방어력 +15ㅣ스파르타의 전사들이 사용했다는 전설의 갑옷입니다.ㅣ",0, 15, 3500, Type.Armor),
+            new Item("낡은 검        ㅣ공격력 +2 ㅣ쉽게 볼 수 있는 낡은 검 입니다.                  ㅣ",2, 0, 600, Type.Weapon),
+            new Item("청동 도끼      ㅣ공격력 +5 ㅣ어디선가 사용됐던거 같은 도끼입니다.             ㅣ",5, 0, 1500, Type.Weapon),
+            new Item("스파르타의 창  ㅣ공격력 +7 ㅣ스파르타의 전사들이 사용했다는 전설의 창입니다.  ㅣ",7, 0, 3000, Type.Weapon),
+            new Item("클래스의 망령  ㅣ정신력 -9 ㅣ클래스를 얕보다 멘탈이 깨진 영혼이다.            ㅣ",0, 0, 0, Type.Armor),
         };
 
         public Store(Game game)
@@ -325,6 +339,11 @@ namespace TextRPG
         }
     }
 
+    enum Type
+    { 
+    Armor,
+    Weapon
+    }
     class Item //아이템 능력치
     {
         public string Name { get; }
@@ -332,12 +351,13 @@ namespace TextRPG
         public int Def { get; }
         public int Gold { get; }
         public Type ItemType { get; }
-        public Item(string name, int atk, int def, int gold)
+        public Item(string name, int atk, int def, int gold, Type type)
         {
             Name = name;
             Atk = atk;
             Def = def;
             Gold = gold;
+            ItemType = type;
         }
     }
 }
