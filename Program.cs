@@ -28,9 +28,10 @@ namespace TextRPG
             while (true)
             {
                 Console.Clear();
-                Console.Write("당신의 이름은 무엇인가요?: ");
+                Console.Write("\n당신의 이름은 무엇인가요?: ");
                 string name = Console.ReadLine();
-                Console.WriteLine($"{name}님이 맞으신가요?\n 1.예 2.아니요");
+                Console.WriteLine($"\n{name}님이 맞으신가요?\n");
+                Console.WriteLine($" 1. 예 2. 아니오\n");
                 int.TryParse(Console.ReadLine(), out int check);
                 if (check == 1)
                 {
@@ -119,10 +120,10 @@ namespace TextRPG
             Console.WriteLine("==== 플레이어 정보 ====\n");
             Console.WriteLine($"Lv. {Level:D2}");
             Console.WriteLine($"{Name} ({Job})");
-            Console.WriteLine($"공격력 : {Atk+ itemAtk} (+{itemAtk})");
-            Console.WriteLine($"방어력 : {Def+ itemDef} (+{itemDef})");
-            Console.WriteLine($"체 력 : {Hp}");
-            Console.WriteLine($"Gold : {Gold}\n");
+            Console.WriteLine($"공격력 : {Atk + itemAtk} (+{itemAtk})");
+            Console.WriteLine($"방어력 : {Def + itemDef} (+{itemDef})");
+            Console.WriteLine($"체  력 : {Hp}");
+            Console.WriteLine($" Gold  : {Gold}\n");
             Console.WriteLine("0. 나가기\n");
             Console.WriteLine("원하시는 행동을입력해주세요.");
             Out();
@@ -185,11 +186,19 @@ namespace TextRPG
         }
 
         private List<Item> inventory = new List<Item>();//보유한 아이템
+        public List<Item> Inven => inventory;//다른 클래스에서 사용 가능하도록
+
         private List<Item> equipped = new List<Item>();//장착한 아이템
 
         public void AddItem(Item item)//아이템 추가
         {
             inventory.Add(item);
+        }
+        public void RemoveItem(Item item)//아이템 제거
+        {
+            inventory.Remove(item);
+            equipped.Remove(item);
+            Itemstatus(out itemAtk, out itemDef);//능력치 재적용
         }
         public void Equipped(Item item)//장착 추가
         {
@@ -281,12 +290,19 @@ namespace TextRPG
                 Console.WriteLine($"{player.Gold}G\n");
                 Console.WriteLine("[아이템 목록]");
                 storeWrite(player);
-                Console.WriteLine("\n1. 아이템 구매\n0. 나가기\n");
+                Console.WriteLine("\n1. 아이템 구매");
+                Console.WriteLine("2. 아이템 판매");
+                Console.WriteLine("0. 나가기\n");
                 Console.WriteLine("원하시는 행동을입력해주세요."); ;
                 string getAct = Console.ReadLine();
                 if (getAct == "1")
                 {
                     BuyItem(player);
+                    break;
+                }
+                else if (getAct == "2")
+                {
+                    Resale(player);
                     break;
                 }
                 else if (getAct == "0")
@@ -299,7 +315,7 @@ namespace TextRPG
             while (true)
             {
                 Console.Clear();
-                Console.WriteLine("==== 상점 ====\n");
+                Console.WriteLine("==== 상점 - 아이템 구매 ====\n");
                 Console.WriteLine("[보유 골드]");
                 Console.WriteLine($"{player.Gold}G\n");
                 Console.WriteLine("[아이템 목록]");
@@ -337,14 +353,69 @@ namespace TextRPG
                 }
             }
         }
-        public void storeWrite(Player player, bool Index = false) //목록 및 구매 완료 출력용
+
+        public void Resale(Player player)
         {
-            for(int i = 0; i < items.Count; i++)
+            string write = "";
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("==== 상점 - 아이템 판매 ====\n");
+                Console.WriteLine("[보유 골드]");
+                Console.WriteLine($"{player.Gold}G\n");
+                Console.WriteLine("[아이템 목록]");
+                storeWrite(player, true, true);
+                Console.WriteLine("\n0. 나가기\n원하시는 행동을 입력해주세요.");
+
+                Console.Write($"\n{write}");
+                int Cursor = Console.CursorTop;
+                Console.SetCursorPosition(0, Cursor - 1);
+
+                string getAct = Console.ReadLine();
+
+                if (int.TryParse(getAct, out int index) && index >= 1 && index <= items.Count)
+                {
+                    Item selItem = items[index - 1];
+                    if (!player.HaveItem(selItem))//보유 여부 확인
+                    {
+                        write = "아이템을 보유중이지않습니다.";
+                    }
+                    else if (player.HaveItem(selItem))
+                    {                                   
+                        player.Gold += (int)(selItem.Gold * 0.85);
+                        player.RemoveItem(selItem);
+                        write = "판매 완료했습니다.";
+                    }
+                }
+                else if (getAct == "0")
+                    break;
+                else
+                {
+                    write = "잘못된 입력입니다.";
+                }
+            }
+        }
+
+        public void storeWrite(Player player, bool Index = false, bool deal = false) //목록 및 구매 완료 출력용
+        {    
+            if (deal == false)//아이템 구매 출력
+            {
+                for (int i = 0; i < items.Count; i++)
+                {
+                    Item item = items[i];
+                    string buycheck = player.HaveItem(item) ? "구매완료" : $"{item.Gold}G";
+                    string index = Index ? $"- {i + 1} " : "- ";
+                    Console.WriteLine($"{index} {item.Name}{buycheck}");
+                }
+            }
+            else //아이템 판매 출력
             { 
-                Item item = items[i];
-                string buycheck = player.HaveItem(item) ? "구매완료" : $"{item.Gold}G";
-                string index = Index ? $"- {i + 1} " : "- ";
-                Console.WriteLine($"{index} {item.Name}{buycheck}");
+                for (int i = 0; i < items.Count; i++)
+                {
+                    Item item = items[i];
+                    string buycheck = player.HaveItem(item) ? $"{item.Gold * 0.85}G" : "미보유";
+                    Console.WriteLine($"- {i + 1}. {item.Name}{buycheck}");
+                }
             }
         }
     }
@@ -372,6 +443,7 @@ namespace TextRPG
         }
     }
     #endregion
+    #region 휴식
     class Rest
     {
         string write = "";
@@ -405,9 +477,14 @@ namespace TextRPG
                     else
                         write = "Gold 가 부족합니다.";
                 }
+                else if (getAct == "0")
+                {
+                    break;
+                }
 
             }
         }
     }
+    #endregion
 }
 
