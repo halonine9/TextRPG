@@ -172,7 +172,7 @@ namespace TextRPG
         }
 
         private List<Item> inventory = new List<Item>();//보유한 아이템
-        private List<Item> equipped = new List<Item>();//장착한 아이템
+        public List<Item> equipped = new List<Item>();//장착한 아이템
 
         public void AddItem(Item item)//아이템 추가
         {
@@ -180,14 +180,21 @@ namespace TextRPG
         }
         public void Equipped(Item item)//장착 추가
         {
-            equipped.Add(item);
+            bool check = equipped.Any(i => i.Name == item.Name);
+            if (check == false)
+            {
+                equipped.Add(item);
+            }
+            else
+                 equipped.Remove(item);
+
         }
         public bool HaveItem(Item item)//보유 여부 확인용
         {
             return inventory.Any(i => i.Name == item.Name);
         }
 
-        public bool wearItem(Item item)//보유 여부 확인용
+        public bool wearItem(Item item)//장착 여부 확인용
         {
             return equipped.Any(i => i.Name == item.Name);
         }
@@ -318,7 +325,7 @@ namespace TextRPG
         }
     }
 
-    class Item //아이템능력치
+    class Item //아이템 능력치
     {
         public string Name { get; }
         public int Atk{ get; }
