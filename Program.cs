@@ -7,6 +7,7 @@ using static TextRPG.Program;
 
 namespace TextRPG
 {
+    #region 스테이지
     class Program
     {
         static void Main(string[] args)
@@ -20,6 +21,7 @@ namespace TextRPG
     {
         Player player;
         Store store;
+        Rest rest;
 
         public void Run()//시작 화면
         {
@@ -34,6 +36,7 @@ namespace TextRPG
                 {
                     player = new Player(name, this);
                     store = new Store(this);
+                    rest = new Rest();
                     PlayerAct();
                     break;
                 }
@@ -53,6 +56,7 @@ namespace TextRPG
                 Console.WriteLine("1. 상태보기\n");
                 Console.WriteLine("2. 인벤토리\n");
                 Console.WriteLine("3. 상점\n");
+                Console.WriteLine("5. 휴식\n");
                 Console.WriteLine("원하시는 행동을입력해주세요.");
 
                 if (check == false)
@@ -75,6 +79,9 @@ namespace TextRPG
                     case "3":
                         store.InStore(player);
                         break;
+                    case "5":
+                        rest.rest(player);
+                        break;
                     default:
                         check = false;
                         break;
@@ -82,6 +89,8 @@ namespace TextRPG
             }
         }
     }
+    #endregion
+    #region 플레이어
     class Player 
     {
         //플레이어 능력치
@@ -91,7 +100,7 @@ namespace TextRPG
         public int Atk = 10;
         public int Def = 5;
         public int Hp = 100;
-        public int Gold = 150000;
+        public int Gold = 10000;
         public int itemAtk = 0;
         public int itemDef = 0;
 
@@ -193,7 +202,7 @@ namespace TextRPG
                  equipped.Remove(item);
             Itemstatus(out itemAtk, out itemDef);
         }
-        public void Itemstatus(out int totalAtk, out int totalDef)
+        public void Itemstatus(out int totalAtk, out int totalDef)//장비 능력치
         {
             totalAtk = 0;
             totalDef = 0;
@@ -241,7 +250,8 @@ namespace TextRPG
         }
 
     }
-
+    #endregion
+    #region 상점
     class Store
     {
         private Game game;
@@ -338,7 +348,8 @@ namespace TextRPG
             }
         }
     }
-
+    #endregion
+    #region 아이템
     enum Type
     { 
     Armor,
@@ -358,6 +369,44 @@ namespace TextRPG
             Def = def;
             Gold = gold;
             ItemType = type;
+        }
+    }
+    #endregion
+    class Rest
+    {
+        string write = "";
+        int restcost = 500;
+        public void rest(Player player)
+        {
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("==== 휴식 ====\n");
+                Console.WriteLine("휴식하기");
+                Console.WriteLine($"{restcost} G를 내면 체력을 회복할 수 있습니다.(보유골드 : {player.Gold}G)\n");
+                Console.WriteLine("1. 휴식하기");
+                Console.WriteLine("0. 나가기\n");
+                Console.WriteLine("원하시는 행동을입력해주세요.");
+
+                Console.Write($"\n{write}");
+                int Cursor = Console.CursorTop;
+                Console.SetCursorPosition(0, Cursor - 1);
+
+                string getAct = Console.ReadLine();
+
+                if (getAct == "1")
+                {
+                    if (player.Gold >= restcost)//보유 여부 확인
+                    {
+                        player.Gold -= restcost;
+                        write = "몸이 한결 가벼워진 느낌을 받습니다.";
+
+                    }
+                    else
+                        write = "Gold 가 부족합니다.";
+                }
+
+            }
         }
     }
 }
